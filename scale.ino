@@ -1,60 +1,35 @@
 
 #include <math.h>
+#include "Adafruit_LEDBackpack.h"
+#include <Wire.h>
 
-const int latchPin = 2;
-const int dataPin = 3;
-const int clockPin = 4;
+#define DISPLAY_ADDRESS 0x70
 
-int currentLED = 0;
-byte numbers[10]={
-  0b00010100, //0
-  0b11110101, //1
-  0b10011000, //2
-  0b10110000, //3
-  0b01110001, //4
-  0b00110010, //5
-  0b00010011, //6 
-  0b11110100, //7
-  0b00010000, //8
-  0b01110000  //9
-};
+
+const int dataPin = 1;
+const int clockPin = 0;
+Adafruit_7segment display = Adafruit_7segment();
+
+double number = 0.0;
+
 void setup() {
-  Serial.begin(9600);
-  pinMode(latchPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
+  
+  Wire.begin(D2, D1);
+  display.begin(DISPLAY_ADDRESS);
+  Serial.begin(115200);
 }
 
 
 void loop() {
+   Serial.print("Testing... ");
+   Serial.println(number);
 
-    for (int i = 0; i< 4096; i++) {
-    
-      
-      
-      digitalWrite(latchPin, LOW);
-      
-      shiftOut(dataPin, clockPin, MSBFIRST, 0b11110001);
-      
-      shiftOut(dataPin, clockPin, MSBFIRST, numbers[i % 10]);
-        
-      digitalWrite(latchPin, HIGH);
-    
-      delay(1000);
-    }
- 
-  
+   writeToDisplay(number);
+   number += 0.1;
+   delay(100);
 }
 
-void display(double first) {
-    double decimalPart;                                                              
-    int fractionPart = (int) ((modf(first, &decimalPart)*10)/10);  // first number after decimalPoint
-
-    int holeNumber = (int) decimalPart;
-
-    int firstDigit, secondDigit, thirdDigit;
-    firstDigit = holeNumber % 10;
-    secondDigit = (holeNumber / 10) % 100;
-    thirdDigit = (holeNumber / 100) % 1000;
-    
+void writeToDisplay(double number) {
+   display.printFloat(number, 1, DEC);
+   display.writeDisplay();
 }
